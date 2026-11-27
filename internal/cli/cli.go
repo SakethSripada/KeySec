@@ -26,7 +26,7 @@ var commands []command
 func init() {
 	commands = []command{
 		{"add", "NAME [flags]", "Store a secret (value read from a hidden prompt or stdin)", (*app).add},
-		{"import", "FILE [--delete]", "Store every value in a .env file", (*app).importEnv},
+		{"import", "FILE [flags]", "Store the values in a .env file; run again to apply changes", (*app).importEnv},
 		{"list", "[--json]", "List secrets", (*app).list},
 		{"show", "NAME [--json]", "Show a secret's metadata and policy", (*app).show},
 		{"edit", "NAME [flags]", "Change a secret's description and other metadata", (*app).edit},

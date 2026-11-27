@@ -6,12 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"text/tabwriter"
 
 	"github.com/sakethsripada/keysec/internal/detect"
-	"github.com/sakethsripada/keysec/internal/dotenv"
 	"github.com/sakethsripada/keysec/internal/store"
 )
 
@@ -141,79 +139,6 @@ func (a *app) readValue(name string) (string, error) {
 	}
 	b, err := io.ReadAll(io.LimitReader(a.stdin, 64<<10))
 	return strings.TrimRight(string(b), "\r\n"), err
-}
-
-func (a *app) importEnv(args []string) error {
-	fs := a.flags("import")
-	del := fs.Bool("delete", false, "delete the file after a successful import")
-	pos, err := parse(fs, args)
-	if err != nil {
-		return err
-	}
-	if err := exactly(fs, pos, 1); err != nil {
-		return err
-	}
-	f, err := os.Open(pos[0])
-	if err != nil {
-		return err
-	}
-	entries, err := dotenv.Parse(f)
-	f.Close()
-	if err != nil {
-		return fmt.Errorf("%s: %w", pos[0], err)
-	}
-	st, err := a.store()
-	if err != nil {
-		return err
-	}
-
-	var imported []string
-	skipped := 0
-	for _, e := range entries {
-		reason := ""
-		switch exists, err := st.Exists(e.Key); {
-		case err != nil:
-			return err
-		case e.Value == "":
-			reason = "empty"
-		case store.ValidateName(e.Key) != nil:
-			reason = "invalid name"
-		case exists:
-			reason = "already stored; use `keysec add` to replace it"
-		}
-		if reason != "" {
-			fmt.Fprintf(a.stderr, "skipped %s: %s\n", e.Key, reason)
-			skipped++
-			continue
-		}
-		meta := store.Meta{}
-		policy := store.Policy{AllowRun: true}
-		fillFromGuess(e.Value, &meta, &policy, nil)
-		if err := st.Put(e.Key, e.Value, meta, policy); err != nil {
-			return err
-		}
-		desc := meta.Description
-		if desc == "" {
-			desc = "no description; add one with `keysec edit " + e.Key + " -d ...`"
-		}
-		fmt.Fprintf(a.stdout, "imported %s (%s)\n", e.Key, desc)
-		imported = append(imported, e.Key)
-	}
-
-	if len(imported) == 0 {
-		return errors.New("nothing imported")
-	}
-	if *del {
-		if skipped > 0 {
-			return fmt.Errorf("not deleting %s because %d entries were skipped", pos[0], skipped)
-		}
-		if err := os.Remove(pos[0]); err != nil {
-			return err
-		}
-		fmt.Fprintf(a.stdout, "deleted %s\n", pos[0])
-	}
-	fmt.Fprintf(a.stdout, "\nRun your app with them:\n  keysec run -s %s -- <command>\n", strings.Join(imported, " -s "))
-	return nil
 }
 
 func (a *app) list(args []string) error {
