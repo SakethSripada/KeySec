@@ -29,6 +29,7 @@ internal/hook       Claude Code PreToolUse hook
 internal/setup      registering with agents
 internal/detect     recognizing key formats
 internal/dotenv     .env parsing
+internal/envsync    planning what a .env re-import changes
 internal/push       provider CLI commands
 ```
 

@@ -32,6 +32,20 @@ pbpaste | keysec add OPENAI_API_KEY   # or pipe it in
 keysec import .env                    # or bring in an existing file
 ```
 
+When the file changes, import it again. keysec shows what changed and applies it:
+
+```
+$ keysec import .env
+update  STRIPE_SECRET_KEY  value changed
+add     RESEND_API_KEY     Resend API key
+keep    OLD_TOKEN          no longer in .env; use --prune to delete it
+Apply 1 update(s) and 0 removal(s)? [y/N] y
+
+1 added, 1 updated, 4 unchanged.
+```
+
+Updated secrets keep their description and policy. `--dry-run` shows the plan without changing anything.
+
 keysec recognizes common key formats and fills in a description, provider and allowed hosts:
 
 ```
@@ -78,7 +92,7 @@ Each secret has a policy, stored in the keychain next to its value:
 keysec policy STRIPE_SECRET_KEY --host api.stripe.com --no-run
 ```
 
-Replacing a secret, changing its policy and deleting it ask for confirmation on your terminal. An agent's shell has no terminal, so it cannot make these changes on its own.
+Replacing a secret (including through a re-import), changing its policy and deleting it ask for confirmation on your terminal. An agent's shell has no terminal, so it cannot make these changes on its own.
 
 ## Security
 
