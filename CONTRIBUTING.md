@@ -43,4 +43,5 @@ Add a rule to `internal/detect/detect.go` with the provider's documented prefix,
 
 - Keep dependencies to a minimum.
 - Never print, log or return a secret value, including in error messages.
+- Use obviously fake values in tests. Strings that look like real keys trip secret scanners.
 - Run `gofmt` and keep `make lint` clean.
