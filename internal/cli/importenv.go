@@ -44,7 +44,7 @@ func (a *app) importEnv(args []string) error {
 	}
 
 	changes := envsync.Plan(entries, existing, source)
-	a.printPlan(changes, *prune, pos[0])
+	printed := a.printPlan(changes, *prune, pos[0])
 	if *dryRun {
 		return nil
 	}
@@ -70,7 +70,10 @@ func (a *app) importEnv(args []string) error {
 		return err
 	}
 	added := envsync.Count(changes, envsync.Add)
-	fmt.Fprintf(a.stdout, "\n%d added, %d updated, %d unchanged", added, updates, envsync.Count(changes, envsync.Unchanged))
+	if printed {
+		fmt.Fprintln(a.stdout)
+	}
+	fmt.Fprintf(a.stdout, "%d added, %d updated, %d unchanged", added, updates, envsync.Count(changes, envsync.Unchanged))
 	if *prune {
 		fmt.Fprintf(a.stdout, ", %d removed", removals)
 	}
@@ -117,7 +120,9 @@ func existingSecrets(st *store.Store) (map[string]envsync.Existing, error) {
 	return out, nil
 }
 
-func (a *app) printPlan(changes []envsync.Change, prune bool, file string) {
+// printPlan lists every change except unchanged secrets and reports whether
+// it printed anything.
+func (a *app) printPlan(changes []envsync.Change, prune bool, file string) bool {
 	tw := tabwriter.NewWriter(a.stdout, 0, 0, 2, ' ', 0)
 	for _, c := range changes {
 		switch c.Action {
@@ -140,6 +145,7 @@ func (a *app) printPlan(changes []envsync.Change, prune bool, file string) {
 		}
 	}
 	tw.Flush()
+	return envsync.Count(changes, envsync.Unchanged) < len(changes)
 }
 
 // applyPlan carries out the changes. New secrets get metadata and a policy
