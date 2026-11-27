@@ -30,13 +30,16 @@ var validName = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]{0,127}$`)
 
 // Meta describes a secret. It never contains the value.
 type Meta struct {
-	Description string    `toml:"description,omitempty" json:"description,omitempty"`
-	Provider    string    `toml:"provider,omitempty" json:"provider,omitempty"`
-	Mode        string    `toml:"mode,omitempty" json:"mode,omitempty"`
-	Scopes      []string  `toml:"scopes,omitempty" json:"scopes,omitempty"`
-	Env         string    `toml:"env,omitempty" json:"env,omitempty"`
-	Expires     string    `toml:"expires,omitempty" json:"expires,omitempty"`
-	Added       time.Time `toml:"added" json:"added"`
+	Description string   `toml:"description,omitempty" json:"description,omitempty"`
+	Provider    string   `toml:"provider,omitempty" json:"provider,omitempty"`
+	Mode        string   `toml:"mode,omitempty" json:"mode,omitempty"`
+	Scopes      []string `toml:"scopes,omitempty" json:"scopes,omitempty"`
+	Env         string   `toml:"env,omitempty" json:"env,omitempty"`
+	Expires     string   `toml:"expires,omitempty" json:"expires,omitempty"`
+	// Source is the absolute path of the .env file the value was imported
+	// from, if any.
+	Source string    `toml:"source,omitempty" json:"source,omitempty"`
+	Added  time.Time `toml:"added" json:"added"`
 }
 
 // Policy controls where and how a secret may be used.
